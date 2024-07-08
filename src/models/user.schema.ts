@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import {findUserByField} from '../db/user.db'
-
+import connectionMgr from '../db/'
 
 
 export const userRegistrationSchema = z.object({
 
-    userId: z.string().refine(async (value) => !!await findUserByField('userId', value), {
+    userId: z.string().refine(async (value) => !!(await connectionMgr([{func: findUserByField, params:['userId',value]}]))[0], {
       message: 'User ID must be unique'
     }),
     firstName: z.string().min(3, {message: 'First name must not be null'}),

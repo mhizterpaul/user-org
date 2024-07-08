@@ -3,6 +3,7 @@ import express from 'express';
 dotenv.config()
 import api from './routes/api.routes';
 import auth from './routes/auth.routes'
+import createTables from './db/createTables';
 
 const app = express();
 
@@ -15,8 +16,15 @@ app.get('/', (req, res) => {
 app.use('/auth', auth);
 app.use('/api', api);
 
-app.listen(process.env.PORT||'3000', () => {
-  console.log(`Server is running on port ${process.env.PORT}`);
-});
+
+createTables()
+.then( () =>
+  app.listen(process.env.PORT||'3000', () => {
+    console.log(`Server is running on port ${process.env.PORT}`);
+  })
+).catch(error => {
+    console.error('Error from creating database table', error);
+})
+
 
 export default app;

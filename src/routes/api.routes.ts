@@ -4,13 +4,16 @@ import {addUserOrg, findUserByField} from '../db/user.db'
 import { getOrgs, getOrgById, addOrg } from '../db/org.db';
 import { orgSchema } from '../models/organisation.schema';
 import { ZodError } from 'zod';
+import connectionMgr from '../db/'
+
 
 const router = Router();
 
 router.get('/users/:id', auth, async (req: Request, res: Response)=>{
 	//a user gets their own record or user record in organisations they belong to or created
-    let passiveUser = await findUserByField('userId', req.params.id),
-	activeUser = await findUserByField('userId', req.body.userId);
+
+    let [passiveUser, activeUser] = await connectionMgr([{func: findUserByField, params:['userId', req.params.id]}, {func: findUserByField, params: ['userId', req.body.userId]}]);
+
 	if(!passiveUser.orgs.some((element:string) => 
 		activeUser.orgs.includes(element))){
 			res.status(403).json({message: "authorization error"})
@@ -25,8 +28,8 @@ router.get('/users/:id', auth, async (req: Request, res: Response)=>{
 
 
 router.get('/organisations', auth, async (req: Request, res: Response)=>{
-	const user = await findUserByField('userId', req.body.userId);
-	const orgs = await getOrgs(user.orgs);
+	const [user] = await connectionMgr([{func: findUserByField, params:['userId', req.body.userId]}]);
+	const [orgs] = await connectionMgr([{func: getOrgs, params: [user.orgs]}]);
 	res.status(200).json({
 		status: 'success',
 		data: {
@@ -37,12 +40,13 @@ router.get('/organisations', auth, async (req: Request, res: Response)=>{
 
 
 router.get('/organisations/:orgId', auth, async (req: Request, res: Response)=>{
-	const user = await findUserByField('userId', req.body.userId);
+	
+	const [user, org] = await connectionMgr([{func: findUserByField, params:['userId', req.body.userId]}, {func: getOrgById, params: [req.params.orgId]}]);
 	if(!user.orgs.includes(req.params.orgId)){
 		res.status(403).json({message: "authorization error"})
 		return;
 	}
-	const org = await getOrgById(req.params.orgId);
+	
 	res.status(200).json({
 		status: 'success',
 		message: '<message>',
@@ -67,7 +71,8 @@ router.post('/organisations', auth, async (req: Request, res: Response)=>{
         return          
     }
 	try{
-		const org = await addOrg(req.body);
+
+		const [org] = await connectionMgr([{func: addOrg, params: [req.body]}]);
 		res.status(201).json({
 			status: 'success',
 			message: 'Organisation created successfully',
@@ -85,16 +90,20 @@ router.post('/organisations', auth, async (req: Request, res: Response)=>{
 
 router.post('/organisations/:orgId/users', async (req: Request, res: Response)=>{
 
-	if(!req.body.userId || 
-		typeof(req.body.userId) !== 'string'|| 
-		!!await getOrgById(req.params.orgId)){
-		res.status(400).json({
-			message: 'Bad Request'
-		})
-		return;
-	}
+	const [org] = await connectionMgr([]);
+	
+
 	try{
-		const org = await addUserOrg(req.body.userId, req.params.orgId)
+
+		const [org, userOrg] = await connectionMgr([{func:addUserOrg, params:[req.body.userId, req.params.orgId]}, {func:getOrgById, params:[req.params.orgId]}])
+		if(!req.body.userId || 
+		typeof(req.body.userId) !== 'string'|| 
+		!!userOrg){
+			res.status(400).json({
+				message: 'Bad Request'
+			})
+			return;
+		}
 		res.status(200).json({
 			status: 'success',
 			message: 'User added to organisation successfully'

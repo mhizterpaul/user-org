@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 import {userRegistrationSchema, userLoginSchema}  from '../models/user.schema'
 import { addUser, findUserByField } from '../db/user.db'
 import { ZodError } from 'zod'
+import connectionMgr from '../db/'
 
 const router = Router()
 
@@ -30,7 +31,8 @@ router.post('/register', async (req: Request, res: Response)=>{
     try{
         const salt = await bcrypt.genSalt(saltRounds);
 		data.password = await bcrypt.hash(data.password, salt);
-        const user = await addUser(data);
+        const [user] = await connectionMgr([{func: addUser, params: [data]}]);
+
         delete user.orgs;
         const token = await generateToken({id: data.userId});
         res.status(201).json({
@@ -66,7 +68,8 @@ router.post('/login', async (req:Request, res: Response)=>{
         }         
     }
     try{
-        const user = await findUserByField('email',  req.body.email);
+        
+        const [user] = await connectionMgr([{func: findUserByField, params: ['email', req.body.email]}]);
         const salt = await bcrypt.genSalt(saltRounds);
 		const password = await bcrypt.hash(req.body.password, salt);
         if(password !== user.password) throw new Error('authentication failed');

@@ -7,12 +7,11 @@ import { ZodError } from 'zod';
 
 const router = Router();
 
-
 router.get('/users/:id', auth, async (req: Request, res: Response)=>{
 	//a user gets their own record or user record in organisations they belong to or created
     let passiveUser = await findUserByField('userId', req.params.id),
-	activeUser = await findUserByField('userId', req.userId);
-	if(!passiveUser.orgs.some(element => 
+	activeUser = await findUserByField('userId', req.body.userId);
+	if(!passiveUser.orgs.some((element:string) => 
 		activeUser.orgs.includes(element))){
 			res.status(403).json({message: "authorization error"})
 			return;
@@ -26,7 +25,7 @@ router.get('/users/:id', auth, async (req: Request, res: Response)=>{
 
 
 router.get('/organisations', auth, async (req: Request, res: Response)=>{
-	const user = await findUserByField('userId', req.userId);
+	const user = await findUserByField('userId', req.body.userId);
 	const orgs = await getOrgs(user.orgs);
 	res.status(200).json({
 		status: 'success',
@@ -38,7 +37,7 @@ router.get('/organisations', auth, async (req: Request, res: Response)=>{
 
 
 router.get('/organisations/:orgId', auth, async (req: Request, res: Response)=>{
-	const user = await findUserByField('userId', req.userId);
+	const user = await findUserByField('userId', req.body.userId);
 	if(!user.orgs.includes(req.params.orgId)){
 		res.status(403).json({message: "authorization error"})
 		return;

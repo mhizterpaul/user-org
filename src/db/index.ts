@@ -3,8 +3,8 @@ import createTables from './createTables';
 
 
 class Database {
-    connection;
-    static errorHandler (error) {
+    connection!: Connection;
+    static errorHandler (error: {[key:string]:any}) {
         let message = '';
         for(const key in error){
             message += `${key}: ${error[key]} \n`
@@ -14,11 +14,17 @@ class Database {
     }
     constructor () {
 
-        const connection = new Connection()
+        const connection = new Connection({
+            host: process.env.PGHOST,
+            port: Number(process.env.PGPORT),
+            user: process.env.PGUSER,
+            password: process.env.PGPASSWORD,
+            database: process.env.PGDATABASE
+        })
         connection.connect()
         .then(data => {
-            this.connection = data;
-            createTables(data)
+            this.connection = connection;
+            createTables(connection)
             .catch(Database.errorHandler);
         })
         .catch(Database.errorHandler) 

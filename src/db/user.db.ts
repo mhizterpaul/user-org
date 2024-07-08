@@ -1,5 +1,5 @@
 import db from '.'
-import { User } from '../..';
+import { User } from '../';
 import { addOrg } from './org.db';
 
 export async function addUserOrg(userId:string, orgId:string){
@@ -19,7 +19,7 @@ export async function addUser(user: User){
         name: user.firstName + "'s organisation",
         description: ''
     })
-    return newUserRes.rows[0]
+    return (newUserRes.rows as Array<any>)[0]
 }
 
 export async function findUserByField(field:string, value:string){
@@ -27,6 +27,5 @@ export async function findUserByField(field:string, value:string){
     const res = await db.connection.query(
         `SELECT * FROM Users WHERE 
         ${field} = ${value}`);
-    return res.rows.length ? res.rows[0] : null;
+    return (res.rows as Array<any>)[0]
 }
-

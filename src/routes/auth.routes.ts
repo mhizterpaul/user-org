@@ -10,7 +10,7 @@ const router = Router()
 const saltRounds = 16;
 
 export const generateToken = (payload: {id: string})=>{
-    return jwt.sign(payload, process.env.SECRET||'', { expiresIn: '3h' })
+    return jwt.sign(payload, process.env.JWTSECRET||'secret', { expiresIn: '3h' })
 }
 
 router.post('/register', async (req: Request, res: Response)=>{

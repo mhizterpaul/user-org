@@ -2,12 +2,12 @@
   "name": "user_org",
   "version": "1.0.0",
   "description": "BACKEND Stage 2 Task: User Authentication & Organization",
-  "main": "src/server.ts",
+  "main": "src/app.ts",
   "scripts": {
     "test": "jest",
-    "dev": "ts-node src/server.ts",
+    "dev": "ts-node src/app.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/app.js"
   },
   "keywords": [],
   "author": "",

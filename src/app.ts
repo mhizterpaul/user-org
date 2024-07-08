@@ -1,8 +1,8 @@
 import dotenv from 'dotenv'
 import express from 'express';
+dotenv.config()
 import api from './routes/api.routes';
 import auth from './routes/auth.routes'
-dotenv.config()
 
 const app = express();
 

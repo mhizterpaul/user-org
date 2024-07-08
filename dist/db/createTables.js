@@ -1,6 +1,6 @@
-import {Connection} from 'postgresql-client'
-
-export default (db:Connection) =>  db.execute(`BEGIN; 
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = (db) => db.execute(`BEGIN; 
         CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
         CREATE TABLE IF NOT EXISTS Users (
                 userId UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- must be unique
@@ -14,7 +14,4 @@ export default (db:Connection) =>  db.execute(`BEGIN;
                 orgId UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- must be unique
                 name VARCHAR NOT NULL, -- must not be null
                 description TEXT NOT NULL, -- must not be null); 
-        END;`)
-
-    
-
+        END;`);

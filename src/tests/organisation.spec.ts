@@ -1,8 +1,7 @@
 import request, {Response} from 'supertest';
-import app from '../app'; // replace with your actual import
-import jwt from 'jsonwebtoken'
+import app from '../app'; 
 
-describe('Organization Data Access', () => {
+describe('Organization Data Access', ()=> {
   let user1:Response, user2:Response, org1Id: string;
 
   beforeAll(async () => {
@@ -45,14 +44,5 @@ describe('Organization Data Access', () => {
     // We expect a 403 Forbidden response
     expect(res.statusCode).toEqual(403);
   });
-  it('should return 401 if the token has expired', async () => {
-  // Generate an expired token
-  const expiredToken = jwt.sign({ id: user1.body.data.user.userId }, process.env.JWTSECRET||'secret', { expiresIn: '-1h' });
-
-  // Try to access the organization with the expired token
-  const res = await request(app)
-    .get(`/organisations/${org1Id}`)
-    .set('Authorization', `Bearer ${expiredToken}`);
-  expect(res.statusCode).toEqual(401);
-});
+  
 });

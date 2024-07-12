@@ -16,12 +16,13 @@ export const generateToken = (payload: {id: string})=>{
 
 router.post('/register', async (req: Request, res: Response)=>{
     const data = req.body;
+    
     try{
         await userRegistrationSchema.parseAsync(data);
     }catch(error: unknown){
         if(error instanceof ZodError){
             const resData = {
-                errors: error.errors.map(err => ({field: err.path, 
+                errors: error.errors.map(err => ({field: err.path[0], 
                 message: err.message}))
             }
             res.status(422).json(resData);
@@ -40,10 +41,11 @@ router.post('/register', async (req: Request, res: Response)=>{
             message: 'Registration',
             data: {
                 accessToken: token,
-                user
+                ...user
             }
         })
     }catch(error){
+        console.log(error)
         res.status(400).json({
             status: 'Bad Request',
             message: 'Registration unsuccessful', 
@@ -60,7 +62,7 @@ router.post('/login', async (req:Request, res: Response)=>{
     }catch(error: unknown){
         if(error instanceof ZodError){
             const resData = {
-                errors: error.errors.map(err => ({field: err.path, 
+                errors: error.errors.map(err => ({field: err.path[0], 
                 message: err.message}))
             }
             res.status(422).json(resData);
@@ -81,7 +83,7 @@ router.post('/login', async (req:Request, res: Response)=>{
             message: 'Login successful',
             data: {
                 accessToken: token,
-                user
+                ...user
             }
         })
     }catch(error){

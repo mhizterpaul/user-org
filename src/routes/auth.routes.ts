@@ -6,9 +6,11 @@ import { addUser, findUserByField } from '../db/user.db'
 import { ZodError } from 'zod'
 import connectionMgr from '../db/'
 
+
 const router = Router()
 
-const saltRounds = 16;
+
+
 
 export const generateToken = (payload: {id: string})=>{
     return jwt.sign(payload, process.env.JWTSECRET||'secret', { expiresIn: '3h' })
@@ -30,22 +32,23 @@ router.post('/register', async (req: Request, res: Response)=>{
         }          
     }
     try{
-        const salt = await bcrypt.genSalt(saltRounds);
-		data.password = await bcrypt.hash(data.password, salt);
+		data.password = await bcrypt.hash(data.password, process.env.SALT||'$2b$16$hCKkfrrDexC9DBkHa5U/MO');
         const [user] = await connectionMgr([{func: addUser, params: [data]}]);
 
-        delete user.orgs;
         const token = await generateToken({id: data.userId});
         res.status(201).json({
             status: 'success',
             message: 'Registration',
             data: {
                 accessToken: token,
-                ...user
+                userId: user[0],
+                firstName: user[1],
+                lastName: user[2],
+                email: user[3],
+                phone: user[5]
             }
         })
     }catch(error){
-        console.log(error)
         res.status(400).json({
             status: 'Bad Request',
             message: 'Registration unsuccessful', 
@@ -72,9 +75,9 @@ router.post('/login', async (req:Request, res: Response)=>{
     try{
         
         const [user] = await connectionMgr([{func: findUserByField, params: ['email', req.body.email]}]);
-        const salt = await bcrypt.genSalt(saltRounds);
-		const password = await bcrypt.hash(req.body.password, salt);
-        if(password !== user.password) throw new Error('authentication failed');
+        const password = await bcrypt.hash(req.body.password, process.env.SALT||'$2b$16$hCKkfrrDexC9DBkHa5U/MO');
+        console.log(user[4], password);
+        if(password !== user[4]) throw new Error('authentication failed');
 
         const token = await generateToken({id: user.userId});
         delete user.orgs;
@@ -83,7 +86,11 @@ router.post('/login', async (req:Request, res: Response)=>{
             message: 'Login successful',
             data: {
                 accessToken: token,
-                ...user
+                userId: user[0],
+                firstName: user[1],
+                lastName: user[2],
+                email: user[3],
+                phone: user[5]
             }
         })
     }catch(error){

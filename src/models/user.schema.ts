@@ -5,7 +5,7 @@ import connectionMgr from '../db/'
 
 export const userRegistrationSchema = z.object({
 
-    userId: z.string().refine(async (value) => !!((await connectionMgr([{func: findUserByField, params:['userId',value]}]))[0]), {
+    userId: z.string().refine(async (value) => !!((await connectionMgr([{func: findUserByField, params:['userId',value]}]))[0].length), {
       message: 'User ID must be unique'
     }).optional(),
     firstName: z.string().min(3, {message: 'First name must not be null'}),

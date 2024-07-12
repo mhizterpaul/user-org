@@ -5,16 +5,17 @@ import { Connection } from 'postgresql-client';
 export async function addUserOrg(userId:string, orgId:string, connection:Connection){
     const user = await findUserByField('userId', userId, connection)
     if(!user) throw new Error('invalid userId')
-    user.orgs.push(orgId);
+    user[6].push(orgId);
     await connection.query(
-        `UPDATE Users SET orgs = ARRAY${user.orgs} WHERE userId='${userId}'`); 
+        `UPDATE Users SET orgs = ARRAY[${user[6]}] WHERE userId='${userId}'`); 
 }
 
 export async function addUser(user: User, connection:Connection){
+    const queryString = `INSERT INTO Users (${Object.keys(user).join(', ')}, orgs)
+        VALUES ('${Object.values(user).join('\', \'')}', ARRAY['${user.firstName + '\'\'s organisation'}']) RETURNING *;`;
 
-    const newUserRes = await connection.query(`INSERT INTO Users (${Object.keys(user).join(', ')}, orgs)
-        VALUES ('${Object.values(user).join('\', \'')}', ARRAY['${user.firstName + '\'\'s organisation'}']) RETURNING *`)
-    
+    const newUserRes = await connection.query(queryString)
+
     await addOrg({
         name: user.firstName + "'s organisation",
         description: ''
